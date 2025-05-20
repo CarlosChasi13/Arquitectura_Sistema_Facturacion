@@ -1,5 +1,5 @@
 """
-WSGI config for sistema_facturacion project.
+WSGI config for hospital_project project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sistema_facturacion.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hospital_project.settings')
 
 application = get_wsgi_application()

@@ -1,5 +1,5 @@
 """
-ASGI config for sistema_facturacion project.
+ASGI config for hospital_project project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 
@@ -11,6 +11,6 @@ import os
 
 from django.core.asgi import get_asgi_application
 
-os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'sistema_facturacion.settings')
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'hospital_project.settings')
 
 application = get_asgi_application()
