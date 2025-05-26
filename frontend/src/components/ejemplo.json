@@ -1,34 +1,37 @@
 {
-  "descargo_id": 123,               
-  "paciente_id": 456,            
-  "fecha": "2025-05-22",     
+  "descargo_id": 123,
+  "paciente_id": 456,
+  "fecha": "2025-05-22",
   "lineas_descargo": [
     {
       "linea_id": 1,
       "productos": [
         {
-          "tipo": "Producto",     
+          "tipo": "Producto",
           "descripcion": "Medicamento ABC",
           "precio_unitario": 20.0,
           "cantidad": 2,
-          "precio_total": 40.0     
+          "precio_total": 40.0,
+          "estado": "Descargado"
         },
         {
           "tipo": "Producto",
           "descripcion": "Comida Hospitalaria",
           "precio_unitario": 30.0,
           "cantidad": 1,
-          "precio_total": 30.0
+          "precio_total": 30.0,
+          "estado": "Descargado"
         }
       ],
       "servicios": [
         {
           "tipo": "Servicio",
           "descripcion": "Atención Médica",
-          "precio_total": 100.0
+          "precio_total": 100.0,
+          "estado": "Descargado"
         }
       ],
-      "precio_total_linea": 170.0   
+      "precio_total_linea": 170.0
     },
     {
       "linea_id": 2,
@@ -38,12 +41,13 @@
           "descripcion": "Material quirúrgico",
           "precio_unitario": 15.0,
           "cantidad": 3,
-          "precio_total": 45.0
+          "precio_total": 45.0,
+          "estado": "Descargado"
         }
       ],
       "servicios": [],
       "precio_total_linea": 45.0
     }
   ],
-  "precio_total_descargo": 215.0    
+  "precio_total_descargo": 215.0
 }
