@@ -10,10 +10,6 @@ class ServicioDAO:
         return list(Servicio.select())
 
     @staticmethod
-    def get_by_codigo(codigo):
-        return Servicio.get_or_none(Servicio.codigo == codigo)
-
-    @staticmethod
     def create(codigo, descripcion, precio_base, estado='DISPONIBLE'):
         return Servicio.create(
             codigo=codigo,
@@ -25,12 +21,5 @@ class ServicioDAO:
     @staticmethod
     def update_estado(servicio, nuevo_estado):
         servicio.estado = nuevo_estado
-        servicio.save()
-        return servicio
-
-    @staticmethod
-    def update(servicio, **kwargs):
-        for attr, val in kwargs.items():
-            setattr(servicio, attr, val)
         servicio.save()
         return servicio

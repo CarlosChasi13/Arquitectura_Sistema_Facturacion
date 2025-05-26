@@ -1,6 +1,7 @@
-from datetime import datetime
+from datetime import date
 from models.descargo import Descargo
 from models.detalle_descargo import DetalleDescargo
+from models.paciente import Paciente
 
 class DescargoDAO:
     @staticmethod
@@ -12,11 +13,16 @@ class DescargoDAO:
         return list(Descargo.select())
 
     @staticmethod
+    def get_by_paciente(paciente):
+        # paciente: instancia o id
+        return list(Descargo.select().where(Descargo.paciente == paciente))
+
+    @staticmethod
     def create(nro_sri, paciente, fecha=None, estado='DESCARGADO'):
         return Descargo.create(
             nro_sri=nro_sri,
             paciente=paciente,
-            fecha=fecha or datetime.now(),
+            fecha=fecha or date.today(),
             estado=estado
         )
 

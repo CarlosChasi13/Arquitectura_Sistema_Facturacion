@@ -2,7 +2,6 @@ from dao.producto_dao import ProductoDAO
 from dao.servicio_dao import ServicioDAO
 
 class CatalogoService:
-    # Productos
     @staticmethod
     def listar_productos():
         return ProductoDAO.get_all()
@@ -14,7 +13,6 @@ class CatalogoService:
             raise ValueError(f"Producto id={id_} no encontrado")
         return prod
 
-    # Servicios
     @staticmethod
     def listar_servicios():
         return ServicioDAO.get_all()

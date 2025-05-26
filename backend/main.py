@@ -1,25 +1,28 @@
-# backend/main.py
 from flask import Flask
 from core.database import db
 from controllers.paciente_controller import paciente_bp
 from controllers.descargo_controller import descargo_bp
 from controllers.factura_controller import factura_bp
 
-# Importa los modelos *desde* el paquete models
-from models.paciente import Paciente
-from models.producto import Producto
-from models.servicio import Servicio
-from models.descargo import Descargo
-from models.detalle_descargo import DetalleDescargo
-from models.factura import Factura
-from models.detalle_factura import DetalleFactura
-
 app = Flask(__name__)
+
+# Health-check en /
+@app.route('/', methods=['GET'])
+def index():
+    return {"message": "API Hospital corriendo 🎉"}, 200
+
+# Registro de Blueprints
 app.register_blueprint(paciente_bp)
 app.register_blueprint(descargo_bp)
 app.register_blueprint(factura_bp)
 
 if __name__ == '__main__':
+    # Importar modelos para crear tablas
+    from models import (
+        Paciente, Producto, Servicio,
+        Descargo, DetalleDescargo,
+        Factura, DetalleFactura
+    )
     db.connect()
     db.create_tables([
         Paciente, Producto, Servicio,

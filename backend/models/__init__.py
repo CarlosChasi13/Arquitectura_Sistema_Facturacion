@@ -5,3 +5,9 @@ from .descargo import Descargo
 from .detalle_descargo import DetalleDescargo
 from .factura import Factura
 from .detalle_factura import DetalleFactura
+
+__all__ = [
+    "Paciente", "Producto", "Servicio",
+    "Descargo", "DetalleDescargo",
+    "Factura", "DetalleFactura",
+]

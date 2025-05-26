@@ -1,30 +1,27 @@
-from datetime import datetime
+from datetime import date
 from dao.descargo_dao import DescargoDAO
 from dao.factura_dao import FacturaDAO
-from dao.producto_dao import ProductoDAO
-from dao.servicio_dao import ServicioDAO
+from dao.paciente_dao import PacienteDAO
 from models.detalle_factura import DetalleFactura
 
 class FacturacionService:
     @staticmethod
     def facturar_descargo(descargo_id):
         desc = DescargoDAO.get_by_id(descargo_id)
-        if not desc:
-            raise ValueError(f"Descargo id={descargo_id} no encontrado")
-        if desc.estado != 'DESCARGADO':
+        if not desc or desc.estado != 'DESCARGADO':
             raise ValueError("Solo descargos en estado 'DESCARGADO' pueden facturarse")
 
-        # 1) Crear cabecera de factura
-        factura = FacturaDAO.create(
+        # 1) Creación de factura
+        fact = FacturaDAO.create(
             nro_sri=f"{desc.nro_sri}-F",
             descargo_original=desc,
-            fecha=datetime.now()
+            fecha=date.today()
         )
 
-        # 2) Clonar cada línea de descargo en detalle_factura
+        # 2) Clonar líneas
         for ln in DescargoDAO.get_lineas(desc):
             DetalleFactura.create(
-                factura=factura,
+                factura=fact,
                 producto=ln.producto,
                 servicio=ln.servicio,
                 cantidad=ln.cantidad,
@@ -33,6 +30,41 @@ class FacturacionService:
 
         # 3) Actualizar estados
         DescargoDAO.update_estado(desc, 'FACTURADO')
-        FacturaDAO.update_estado(factura, 'FACTURADO')
+        FacturaDAO.update_estado(fact, 'FACTURADO')
+        return fact
 
-        return factura
+    @staticmethod
+    def get_factura_por_paciente(paciente_id):
+        paciente = PacienteDAO.get_by_id(paciente_id)
+        if not paciente:
+            raise ValueError("Paciente no encontrado")
+        # Tomo la última factura del paciente
+        facturas = []
+        for d in paciente.descargos:
+            facturas.extend(d.facturas)
+        if not facturas:
+            raise ValueError("No hay facturas para este paciente")
+        fact = sorted(facturas, key=lambda f: f.id)[-1]
+
+        # Construyo el JSON que espera el frontend
+        items = []
+        total = 0.0
+        for linea in fact.lineas_factura:
+            desc = linea.producto or linea.servicio
+            cant = linea.cantidad
+            precio = linea.precio_unitario
+            items.append({
+                "id": linea.id,
+                "descripcion": desc.descripcion,
+                "cantidad": cant,
+                "precio": precio
+            })
+            total += cant * precio
+
+        return {
+            "nro_sri": fact.nro_sri,
+            "fecha": fact.fecha.isoformat(),
+            "cliente": f"{paciente.nombres} {paciente.apellidos}",
+            "items": items,
+            "total": total
+        }

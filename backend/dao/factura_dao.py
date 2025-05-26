@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 from models.factura import Factura
 
 class FacturaDAO:
@@ -11,11 +11,15 @@ class FacturaDAO:
         return list(Factura.select())
 
     @staticmethod
+    def get_by_descargo(descargo):
+        return list(Factura.select().where(Factura.descargo_original == descargo))
+
+    @staticmethod
     def create(nro_sri, descargo_original, fecha=None, estado='FACTURADO'):
         return Factura.create(
             nro_sri=nro_sri,
             descargo_original=descargo_original,
-            fecha=fecha or datetime.now(),
+            fecha=fecha or date.today(),
             estado=estado
         )
 
@@ -24,7 +28,3 @@ class FacturaDAO:
         factura.estado = nuevo_estado
         factura.save()
         return factura
-
-    @staticmethod
-    def get_by_descargo(descargo):
-        return list(Factura.select().where(Factura.descargo_original == descargo))

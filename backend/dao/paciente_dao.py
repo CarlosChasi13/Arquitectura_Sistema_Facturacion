@@ -10,13 +10,13 @@ class PacienteDAO:
         return list(Paciente.select())
 
     @staticmethod
-    def create(nombres, apellidos, cedula, fecha_ingreso, fecha_alta=None, telefono=None):
+    def create(nombres, apellidos, cedula, fecha_nac, estado, telefono=None):
         return Paciente.create(
             nombres=nombres,
             apellidos=apellidos,
             cedula=cedula,
-            fecha_ingreso=fecha_ingreso,
-            fecha_alta=fecha_alta,
+            fecha_nac=fecha_nac,
+            estado=estado,
             telefono=telefono
         )
 

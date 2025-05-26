@@ -2,6 +2,10 @@ from dao.paciente_dao import PacienteDAO
 
 class PacienteService:
     @staticmethod
+    def listar_pacientes():
+        return PacienteDAO.get_all()
+
+    @staticmethod
     def get_paciente(id_):
         paciente = PacienteDAO.get_by_id(id_)
         if not paciente:
@@ -9,20 +13,9 @@ class PacienteService:
         return paciente
 
     @staticmethod
-    def listar_pacientes():
-        return PacienteDAO.get_all()
-
-    @staticmethod
-    def crear_paciente(nombres, apellidos, cedula, fecha_ingreso, fecha_alta=None, telefono=None):
-        # Podrías validar aquí duplicados de cédula, formatos, etc.
-        return PacienteDAO.create(
-            nombres=nombres,
-            apellidos=apellidos,
-            cedula=cedula,
-            fecha_ingreso=fecha_ingreso,
-            fecha_alta=fecha_alta,
-            telefono=telefono
-        )
+    def crear_paciente(nombres, apellidos, cedula, fecha_nac, estado, telefono=None):
+        # aquí podrías validar duplicados o formatos
+        return PacienteDAO.create(nombres, apellidos, cedula, fecha_nac, estado, telefono)
 
     @staticmethod
     def actualizar_paciente(id_, **kwargs):

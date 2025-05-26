@@ -1,7 +1,8 @@
-# backend/core/database.py
 from peewee import SqliteDatabase, Model
 
-db = SqliteDatabase('hospital.db')  # crea hospital.db en tu carpeta
+# Base de datos SQLite (hospital.db)
+db = SqliteDatabase('hospital.db')
+
 class BaseModel(Model):
     class Meta:
         database = db
