@@ -1,10 +1,14 @@
 from flask import Flask
+from flask_cors import CORS  # <-- Importa flask-cors
 from core.database import db
 from controllers.paciente_controller import paciente_bp
 from controllers.descargo_controller import descargo_bp
 from controllers.factura_controller import factura_bp
 
 app = Flask(__name__)
+
+# Configura CORS para permitir solicitudes desde localhost:3000
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 # Health-check en /
 @app.route('/', methods=['GET'])
