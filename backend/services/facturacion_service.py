@@ -11,14 +11,14 @@ class FacturacionService:
         if not desc or desc.estado != 'DESCARGADO':
             raise ValueError("Solo descargos en estado 'DESCARGADO' pueden facturarse")
 
-        # 1) Creación de factura
+        # 1) Crear cabecera de factura
         fact = FacturaDAO.create(
             nro_sri=f"{desc.nro_sri}-F",
             descargo_original=desc,
             fecha=date.today()
         )
 
-        # 2) Clonar líneas
+        # 2) Clonar líneas de descargo en detalle_factura
         for ln in DescargoDAO.get_lineas(desc):
             DetalleFactura.create(
                 factura=fact,
@@ -28,9 +28,10 @@ class FacturacionService:
                 precio_unitario=ln.precio_unitario
             )
 
-        # 3) Actualizar estados
+        # 3) Actualizar estados en BD
         DescargoDAO.update_estado(desc, 'FACTURADO')
         FacturaDAO.update_estado(fact, 'FACTURADO')
+
         return fact
 
     @staticmethod
@@ -38,24 +39,27 @@ class FacturacionService:
         paciente = PacienteDAO.get_by_id(paciente_id)
         if not paciente:
             raise ValueError("Paciente no encontrado")
-        # Tomo la última factura del paciente
+
+        # Recojo todas las facturas de todos los descargos del paciente
         facturas = []
         for d in paciente.descargos:
             facturas.extend(d.facturas)
         if not facturas:
             raise ValueError("No hay facturas para este paciente")
+
+        # Elijo la última factura (por id)
         fact = sorted(facturas, key=lambda f: f.id)[-1]
 
         # Construyo el JSON que espera el frontend
         items = []
         total = 0.0
         for linea in fact.lineas_factura:
-            desc = linea.producto or linea.servicio
+            entidad = linea.producto or linea.servicio
             cant = linea.cantidad
             precio = linea.precio_unitario
             items.append({
                 "id": linea.id,
-                "descripcion": desc.descripcion,
+                "descripcion": entidad.descripcion,
                 "cantidad": cant,
                 "precio": precio
             })

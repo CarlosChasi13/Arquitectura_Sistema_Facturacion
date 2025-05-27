@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from services.paciente_service import PacienteService
+from flask import Blueprint
 
 paciente_bp = Blueprint('paciente_bp', __name__, url_prefix='/pacientes')
 
