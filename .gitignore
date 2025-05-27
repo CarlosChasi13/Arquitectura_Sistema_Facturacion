@@ -1,1 +1,46 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Env virtual (cambia según el nombre de tu carpeta virtualenv)
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Bases de datos SQLite
+db.sqlite3
+
+# Archivos de migración automáticos
+*/migrations/*.pyc
+*/migrations/*.pyo
+*/migrations/__pycache__/
+# Excepto el archivo __init__.py dentro de migrations (para mantener la carpeta)
+!*/migrations/__init__.py
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de entorno y configuración sensible
+*.env
+*.venv
+
+# Archivos de logs
+*.log
+
+# Archivos de pytest
+.cache
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# Archivos de compilación
+*.pyc
+*.pyo
+
 /frontend/node_modules
