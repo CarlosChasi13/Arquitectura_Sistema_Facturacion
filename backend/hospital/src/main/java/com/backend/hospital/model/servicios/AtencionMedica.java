@@ -1,10 +1,16 @@
+// src/main/java/com/backend/hospital/model/servicios/AtencionMedica.java
 package com.backend.hospital.model.servicios;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @DiscriminatorValue("ATENCION_MEDICA")
+@Data
+@NoArgsConstructor
 public class AtencionMedica extends Servicio {
-    // Aquí podrías añadir campos específicos de atención médica
+    // Podrías agregar, por ejemplo:
+    // private String doctorEncargado;
 }

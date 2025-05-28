@@ -1,18 +1,21 @@
 // src/main/java/com/backend/hospital/dto/ServicioDTO.java
 package com.backend.hospital.dto;
 
-import com.backend.hospital.model.servicios.Servicio;
 import com.backend.hospital.model.EstadoDocumento;
+import com.backend.hospital.model.servicios.Servicio;
 import lombok.*;
 
-@Data @NoArgsConstructor @AllArgsConstructor @Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ServicioDTO {
     private Long id;
     private String codigo;
     private String descripcion;
     private Double precioBase;
-    private EstadoDocumento estado;
-    private String tipo; // el discriminator
+    private EstadoDocumento estado;  // Ya es un enum
+    private String tipo;             // p.ej. "EXAMEN_LAB"
 
     public static ServicioDTO fromEntity(Servicio s) {
         return ServicioDTO.builder()
@@ -21,18 +24,11 @@ public class ServicioDTO {
             .descripcion(s.getDescripcion())
             .precioBase(s.getPrecioBase())
             .estado(s.getEstado())
-            .tipo(s.getClass().getSimpleName())
+            .tipo(s.getClass().getAnnotation(
+                   jakarta.persistence.DiscriminatorValue.class
+                 ).value())
             .build();
     }
 
-    public Servicio toEntity() {
-        // crea la instancia base; si necesitas la subclase, hazlo en el service
-        return Servicio.builder()
-            .id(this.id)
-            .codigo(this.codigo)
-            .descripcion(this.descripcion)
-            .precioBase(this.precioBase)
-            .estado(this.estado)
-            .build();
-    }
+    // No necesitas toEntity aquí si delegas la creación de la subclase al service
 }

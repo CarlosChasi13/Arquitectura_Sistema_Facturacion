@@ -5,9 +5,9 @@ import com.backend.hospital.dto.ServicioDTO;
 import java.util.List;
 
 public interface ServicioService {
-  List<ServicioDTO> listarServicios();
-  ServicioDTO getServicio(Long id);
-  ServicioDTO crearServicio(ServicioDTO dto);
-  ServicioDTO actualizarServicio(Long id, ServicioDTO dto);
-  void borrarServicio(Long id);
+    List<ServicioDTO> listarServicios();
+    ServicioDTO getServicio(Long id);
+    ServicioDTO crearServicio(ServicioDTO dto);
+    ServicioDTO actualizarServicio(Long id, ServicioDTO dto);
+    void eliminarServicio(Long id);
 }
