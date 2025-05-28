@@ -1,21 +1,72 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { obtenerProductos, obtenerServicios } from "@/services/productoService";
+import { toast } from "react-toastify";
 
 export default function ModalAgregarDescargo({ onGuardarLinea, onCancelar }) {
   const [form, setForm] = useState({
-    descripcion: "",
     tipo: "Producto",
+    descripcion: "",
     precio: "",
     cantidad: 1,
     estado: "Descargado",
   });
-  const [productos, setProductos] = useState([]);
-  const [servicios, setServicios] = useState([]);
+
+  const [opciones, setOpciones] = useState([]);
+  const [productosAgregados, setProductosAgregados] = useState([]);
+  const [serviciosAgregados, setServiciosAgregados] = useState([]);
+  const [idSeleccionado, setIdSeleccionado] = useState("");
+
+  // Cargar productos o servicios al cambiar el tipo
+useEffect(() => {
+  async function cargarOpciones() {
+    const res =
+      form.tipo === "Producto"
+        ? await obtenerProductos()
+        : await obtenerServicios();
+
+    if (res.success) {
+      setOpciones(res.data);
+      console.log("Respuesta recibida", res);
+    } else {
+      toast.error(res.message || "Error al cargar opciones");
+      setOpciones([]);
+    }
+
+    // Reiniciar selección y campos al cambiar tipo
+    setIdSeleccionado("");
+    setForm((prev) => ({
+      ...prev,
+      descripcion: "",
+      precio: "",
+      cantidad: form.tipo === "Producto" ? 1 : 1, 
+    }));
+  }
+
+  cargarOpciones();
+}, [form.tipo]);
+
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSeleccion = (e) => {
+    const idSeleccionado = parseInt(e.target.value);
+    const seleccionado = opciones.find((item) => item.id === idSeleccionado);
+
+    if (seleccionado) {
+      setForm((prev) => ({
+        ...prev,
+        descripcion: seleccionado.nombre,
+        precio:
+          form.tipo === "Producto"
+            ? seleccionado.precio_unitario
+            : seleccionado.precio_base,
+      }));
+    }
   };
 
   const agregarItem = () => {
@@ -38,36 +89,42 @@ export default function ModalAgregarDescargo({ onGuardarLinea, onCancelar }) {
     };
 
     if (form.tipo === "Producto") {
-      setProductos([...productos, nuevoItem]);
+      setProductosAgregados((prev) => [...prev, nuevoItem]);
     } else {
-      setServicios([...servicios, nuevoItem]);
+      setServiciosAgregados((prev) => [...prev, nuevoItem]);
     }
 
-    setForm({ descripcion: "", tipo: "Producto", precio: "", cantidad: 1 });
+    setForm({
+      tipo: "Producto",
+      descripcion: "",
+      precio: "",
+      cantidad: 1,
+      estado: "Descargado",
+    });
   };
 
   const eliminarItem = (id, tipo) => {
     if (tipo === "Producto") {
-      setProductos(productos.filter((p) => p.id !== id));
+      setProductosAgregados((prev) => prev.filter((p) => p.id !== id));
     } else {
-      setServicios(servicios.filter((s) => s.id !== id));
+      setServiciosAgregados((prev) => prev.filter((s) => s.id !== id));
     }
   };
 
   const guardarLineaDescargo = () => {
-    if (productos.length === 0 && servicios.length === 0) {
+    if (productosAgregados.length === 0 && serviciosAgregados.length === 0) {
       alert("Debes agregar al menos un producto o servicio.");
       return;
     }
 
     const total =
-      productos.reduce((sum, p) => sum + p.precio_total, 0) +
-      servicios.reduce((sum, s) => sum + s.precio_total, 0);
+      productosAgregados.reduce((sum, p) => sum + p.precio_total, 0) +
+      serviciosAgregados.reduce((sum, s) => sum + s.precio_total, 0);
 
     onGuardarLinea({
       linea_id: Date.now(),
-      productos,
-      servicios,
+      productos: productosAgregados,
+      servicios: serviciosAgregados,
       precio_total_linea: total,
     });
   };
@@ -78,22 +135,45 @@ export default function ModalAgregarDescargo({ onGuardarLinea, onCancelar }) {
         <h2 className="text-2xl font-bold">Nueva Línea de Descargo</h2>
 
         <div className="flex gap-4">
-          <input
-            type="text"
-            name="descripcion"
-            placeholder="Descripción"
-            value={form.descripcion}
-            onChange={handleChange}
-            className="flex-1 border px-4 py-2 rounded"
-          />
           <select
             name="tipo"
             value={form.tipo}
             onChange={handleChange}
-            className="border px-4 py-2 rounded"
+            className="border px-4 py-2 rounded w-1/2"
           >
             <option value="Producto">Producto</option>
             <option value="Servicio">Servicio</option>
+          </select>
+
+          <select
+            name="descripcion"
+            value={idSeleccionado}
+            onChange={(e) => {
+              const id = e.target.value;
+              setIdSeleccionado(id); // actualiza el valor del select
+              const seleccionado = opciones.find(
+                (item) => item.id === parseInt(id)
+              );
+
+              if (seleccionado) {
+                setForm((prev) => ({
+                  ...prev,
+                  descripcion: seleccionado.nombre || seleccionado.descripcion,
+                  precio:
+                    form.tipo === "Producto"
+                      ? seleccionado.precio_unitario
+                      : seleccionado.precio_base,
+                }));
+              }
+            }}
+            className="border px-4 py-2 rounded w-1/2"
+          >
+            <option value="">Seleccionar {form.tipo}</option>
+            {opciones.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.nombre || item.descripcion}
+              </option>
+            ))}
           </select>
         </div>
 
@@ -130,10 +210,10 @@ export default function ModalAgregarDescargo({ onGuardarLinea, onCancelar }) {
 
         <div>
           <h3 className="font-semibold mt-4">Productos</h3>
-          {productos.length === 0 && (
+          {productosAgregados.length === 0 && (
             <p className="text-sm text-gray-500">Ninguno agregado</p>
           )}
-          {productos.map((p) => (
+          {productosAgregados.map((p) => (
             <div key={p.id} className="flex justify-between text-sm py-1">
               <span>
                 {p.descripcion} x{p.cantidad}
@@ -151,10 +231,10 @@ export default function ModalAgregarDescargo({ onGuardarLinea, onCancelar }) {
 
         <div>
           <h3 className="font-semibold mt-4">Servicios</h3>
-          {servicios.length === 0 && (
+          {serviciosAgregados.length === 0 && (
             <p className="text-sm text-gray-500">Ninguno agregado</p>
           )}
-          {servicios.map((s) => (
+          {serviciosAgregados.map((s) => (
             <div key={s.id} className="flex justify-between text-sm py-1">
               <span>{s.descripcion}</span>
               <span>${s.precio_total.toFixed(2)}</span>

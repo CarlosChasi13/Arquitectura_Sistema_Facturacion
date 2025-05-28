@@ -34,17 +34,24 @@ export default function ListaPacientes() {
   }
 
   if (pacientes.length === 0) {
-    return (
-      <div className="text-center text-gray-700">
-        <p>No hay pacientes registrados.</p>
-        <Link
-          href="/pacientes/ingresar"
-          className="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition"
-        >
-          Agregar Paciente
-        </Link>
-      </div>
-    );
+    if (pacientes.length === 0) {
+      return (
+        <div className="min-h-screen w-full flex items-center justify-center bg-[#f9fafb] p-4">
+          <div className="max-w-4xl w-full bg-white p-6 rounded-lg shadow text-center text-gray-700">
+            <h2 className="text-2xl font-bold text-center mb-4 text-gray-900">
+              Lista de Pacientes
+            </h2>
+            <p>No hay pacientes registrados.</p>
+            <Link
+              href="/pacientes/ingresar"
+              className="mt-4 inline-block bg-blue-600 text-white px-6 py-2 rounded shadow hover:bg-blue-700 transition"
+            >
+              Agregar Paciente
+            </Link>
+          </div>
+        </div>
+      );
+    }
   }
 
   return (

@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { crearPaciente } from "@/services/pacienteService";
+import { toast } from "react-toastify";
 
 export default function FormularioPaciente() {
   const router = useRouter();
@@ -10,27 +12,41 @@ export default function FormularioPaciente() {
     apellidos: "",
     cedula: "",
     fecha_nac: "",
-    telefono: "",  // Aquí sí se mantiene
+    telefono: "", 
   });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError(null);
 
     const pacienteConEstado = {
       ...formData,
-      estado: "Internado",  // Estado asignado automáticamente
+      estado: "Internado",
     };
 
-    console.log("Datos del paciente a guardar:", pacienteConEstado);
+    try {
+      const res = await crearPaciente(pacienteConEstado);
 
-    // Aquí iría la llamada al backend para guardar el paciente
-
-    router.push("/pacientes");
+      if (res.success) {
+        toast.success("Paciente creado exitosamente");
+        router.push("/pacientes");
+      } else {
+        setError(res.message || "Error al crear el paciente");
+      }
+    } catch (err) {
+      setError(err.message || "Error inesperado");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,7 +55,9 @@ export default function FormularioPaciente() {
         onSubmit={handleSubmit}
         className="w-full max-w-xl bg-white p-8 rounded-lg shadow-md space-y-5 text-gray-800"
       >
-        <h2 className="text-3xl font-bold text-center mb-6">Ingresar Paciente</h2>
+        <h2 className="text-3xl font-bold text-center mb-6">
+          Ingresar Paciente
+        </h2>
 
         <input
           type="text"

@@ -1,0 +1,108 @@
+import { getAPI, postAPI } from "./service"; 
+const BASE_URL = process.env.BACKEND_URL || 'http://127.0.0.1:5000';
+
+// Obtener descargos por paciente
+export async function obtenerDescargosPorPaciente(pacienteId) {
+  const url = `${BASE_URL}/pacientes/${pacienteId}/descargos`;
+
+  try {
+    const res = await getAPI(url);
+    return {
+      success: res.success,
+      message: res.message || "Descargos obtenidos correctamente",
+      data: Array.isArray(res.data) ? res.data : [],
+    };
+  } catch (error) {
+    console.error("Error al obtener descargos:", error);
+    return {
+      success: false,
+      message: "Error al obtener descargos del paciente",
+      data: [],
+    };
+  }
+}
+
+// Crear descargo para paciente
+export async function crearDescargoParaPaciente(pacienteId, datosDescargo) {
+  const url = `${BASE_URL}/pacientes/${pacienteId}/descargos`;
+
+  try {
+    const res = await postAPI(url, datosDescargo);
+    return {
+      success: res.success,
+      message: res.message || "Descargo creado correctamente",
+      data: res.data || null,
+    };
+  } catch (error) {
+    console.error("Error al crear descargo:", error);
+    return {
+      success: false,
+      message: "Error al crear descargo para el paciente",
+      data: null,
+    };
+  }
+}
+
+// Obtener un descargo específico por ID
+export async function obtenerDescargoPorId(descargoId) {
+  const url = `${BASE_URL}/descargos/${descargoId}`;
+
+  try {
+    const res = await getAPI(url);
+    return {
+      success: res.success,
+      message: res.message || "Descargo obtenido correctamente",
+      data: res.data || null,
+    };
+  } catch (error) {
+    console.error("Error al obtener descargo por ID:", error);
+    return {
+      success: false,
+      message: "Error al obtener el descargo",
+      data: null,
+    };
+  }
+}
+
+//Líneas de descargo 
+
+export async function obtenerLineasDeDescargo(descargoId) {
+  const url = `${BASE_URL}/descargos/${descargoId}/lineas`;
+
+  try {
+    const res = await getAPI(url);
+    return {
+      success: res.success,
+      message: res.message || "Líneas de descargo obtenidas correctamente",
+      data: Array.isArray(res.data) ? res.data : [],
+    };
+  } catch (error) {
+    console.error("Error al obtener líneas del descargo:", error);
+    return {
+      success: false,
+      message: "Error al obtener líneas del descargo",
+      data: [],
+    };
+  }
+}
+
+// Agregar nueva línea (producto o servicio) a un descargo
+export async function agregarLineaADescargo(descargoId, datosLinea) {
+  const url = `${BASE_URL}/descargos/${descargoId}/lineas`;
+
+  try {
+    const res = await postAPI(url, datosLinea);
+    return {
+      success: res.success,
+      message: res.message || "Línea agregada correctamente",
+      data: res.data || null,
+    };
+  } catch (error) {
+    console.error("Error al agregar línea al descargo:", error);
+    return {
+      success: false,
+      message: "Error al agregar línea al descargo",
+      data: null,
+    };
+  }
+}

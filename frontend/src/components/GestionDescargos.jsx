@@ -1,67 +1,42 @@
 "use client";
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import LineaDescargo from "./LineaDescargo";
 import ModalAgregarDescargo from "./ModalAgregarDescargo";
+import { obtenerDescargosPorPaciente } from "@/services/descargoService";
 
 export default function DetalleDescargo() {
   const router = useRouter();
   const [lineaExpandida, setLineaExpandida] = useState(null);
 
-  const [descargo, setDescargo] = useState({
-    descargo_id: 123,
-    paciente_id: 456,
-    fecha: "2025-05-22",
-    lineas_descargo: [
-      {
-        linea_id: 1,
-        productos: [
-          {
-            tipo: "Producto",
-            descripcion: "Medicamento ABC",
-            precio_unitario: 20,
-            cantidad: 2,
-            precio_total: 40,
-          },
-          {
-            tipo: "Producto",
-            descripcion: "Comida Hospitalaria",
-            precio_unitario: 30,
-            cantidad: 1,
-            precio_total: 30,
-          },
-        ],
-        servicios: [
-          {
-            tipo: "Servicio",
-            descripcion: "Atención Médica",
-            precio_total: 100,
-          },
-        ],
-        precio_total_linea: 170,
-      },
-      {
-        linea_id: 2,
-        productos: [
-          {
-            tipo: "Producto",
-            descripcion: "Material quirúrgico",
-            precio_unitario: 15,
-            cantidad: 3,
-            precio_total: 45,
-          },
-        ],
-        servicios: [],
-        precio_total_linea: 45,
-      },
-    ],
-    precio_total_descargo: 215,
-  });
+  const [descargo, setDescargo] = useState(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
 
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleAgregarDescargo = () => setModalVisible(true);
+  const params = useParams();
+  const paciente_id = params?.id;
+
+  console.log("id:", paciente_id);
+
+  useEffect(() => {
+    async function cargarDescargo() {
+      const res = await obtenerDescargosPorPaciente(paciente_id);
+
+      if (res.success && res.data) {
+        setDescargo(res.data);
+      } else {
+        setError("No hay descargo creado para este paciente.");
+      }
+
+      setCargando(false);
+    }
+
+    cargarDescargo();
+  }, []);
 
   const guardarLinea = (linea) => {
     setDescargo((prev) => ({
@@ -105,6 +80,57 @@ export default function DetalleDescargo() {
     console.log("✅ Factura generada:", factura);
     alert("Factura generada correctamente. Revisa la consola.");
   };
+
+  if (cargando)
+    return <p className="text-center mt-10">Cargando descargo...</p>;
+
+  if (error || !descargo || !descargo.lineas_descargo?.length) {
+    return (
+      <div className="min-h-screen w-full bg-white text-gray-900 flex flex-col items-center p-6">
+        <div className="w-full max-w-5xl text-center mb-6">
+          <h2 className="text-2xl font-bold mb-4">
+            {error || "Aún no hay descargos para este paciente."}
+          </h2>
+          <p className="mb-4">
+            Puedes crear un nuevo descargo para comenzar el registro de insumos
+            y servicios.
+          </p>
+
+          <div className="flex flex-wrap justify-center gap-4">
+            <button
+              onClick={() => router.push("/pacientes")}
+              className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
+            >
+              ← Volver
+            </button>
+
+            <button
+              onClick={() => setModalVisible(true)}
+              className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
+            >
+              Crear Descargo
+            </button>
+          </div>
+        </div>
+
+        {modalVisible && (
+          <ModalAgregarDescargo
+            onGuardarLinea={(nuevaLinea) => {
+              setDescargo({
+                descargo_id: Date.now(),
+                paciente_id: paciente_id,
+                fecha: new Date().toISOString().split("T")[0],
+                lineas_descargo: [nuevaLinea],
+                precio_total_descargo: nuevaLinea.precio_total_linea,
+              });
+              setModalVisible(false);
+            }}
+            onCancelar={() => setModalVisible(false)}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-full bg-white text-gray-900 flex flex-col items-center p-6">

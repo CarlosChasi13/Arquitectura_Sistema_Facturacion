@@ -50,3 +50,4 @@ Thumbs.db
 /backend/dao/__pycache__
 /backend/core/__pycache__
 /backend/services/__pycache__
+backend/hospital.db
