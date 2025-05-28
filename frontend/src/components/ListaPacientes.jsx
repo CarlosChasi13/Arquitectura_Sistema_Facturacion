@@ -1,16 +1,29 @@
 "use client";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 export default function ListaPacientes() {
-  const pacientes = [
-    { id: 1, nombres: "Juan", apellidos: "Pérez", cedula: "0102030405", estado: "Internado" },
-    { id: 2, nombres: "María", apellidos: "García", cedula: "0607080910", estado: "Alta" },
-  ];
+  const [pacientes, setPacientes] = useState([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    fetch("/api/pacientes/")
+      .then((res) => {
+        if (!res.ok) throw new Error(res.statusText);
+        return res.json();
+      })
+      .then(setPacientes)
+      .catch((e) => setError(e.message));
+  }, []);
+
+  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
 
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#f9fafb] p-4">
       <div className="max-w-4xl w-full bg-white p-6 rounded-lg shadow">
-        <h2 className="text-2xl font-bold text-center mb-4 text-gray-900">Lista de Pacientes</h2>
+        <h2 className="text-2xl font-bold text-center mb-4 text-gray-900">
+          Lista de Pacientes
+        </h2>
 
         <div className="flex justify-center mb-6">
           <Link

@@ -1,4 +1,16 @@
+// frontend/next.config.mjs
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+  reactStrictMode: true,
 
-export default nextConfig;
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',        // cualquier llamada a /api/...
+        destination: `${process.env.NEXT_PUBLIC_API_URL}/:path*`
+      }
+    ]
+  }
+}
+
+export default nextConfig

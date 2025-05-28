@@ -1,0 +1,12 @@
+// src/main/java/com/backend/hospital/state/EstadoBueno.java
+package com.backend.hospital.state;
+
+import com.backend.hospital.model.Paciente;
+
+public class EstadoBueno implements PacienteState {
+    @Override
+    public void manejarEstado(Paciente paciente) {
+        System.out.println("El paciente está en estado bueno.");
+        // Aquí lógica propia para estado bueno
+    }
+}
