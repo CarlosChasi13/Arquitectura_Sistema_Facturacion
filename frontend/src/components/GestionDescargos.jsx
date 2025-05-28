@@ -6,8 +6,14 @@ import LineaDescargo from "./LineaDescargo";
 import ModalAgregarDescargo from "./ModalAgregarDescargo";
 import { obtenerDescargosPorPaciente } from "@/services/descargoService";
 
-export default function DetalleDescargo() {
+export default function GestionDescargos() {
+  const { id } = useParams();       // paciente_id
   const router = useRouter();
+
+  // null = cargando, [] = cargado pero sin descargos, [ ... ] = con datos
+  const [descargos, setDescargos] = useState(null);
+  const [error, setError] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
   const [lineaExpandida, setLineaExpandida] = useState(null);
 
   const [descargo, setDescargo] = useState(null);
@@ -135,65 +141,103 @@ export default function DetalleDescargo() {
   return (
     <div className="min-h-screen w-full bg-white text-gray-900 flex flex-col items-center p-6">
       <div className="w-full max-w-5xl mb-6">
+        <button
+          onClick={() => router.back()}
+          className="mb-4 text-gray-600 hover:underline"
+        >
+          ← Volver
+        </button>
         <h2 className="text-2xl font-bold mb-2">
-          Detalle del Descargo #{descargo.descargo_id}
+          Detalle del Descargo #{desc.descargo_id}
         </h2>
         <p>
-          <strong>Paciente ID:</strong> {descargo.paciente_id}
-        </p>
-        <p>
-          <strong>Fecha:</strong> {descargo.fecha}
+          <strong>Fecha:</strong> {desc.fecha}
         </p>
       </div>
 
       <table className="w-full max-w-5xl border-collapse border border-gray-300 mb-6">
         <thead className="bg-gray-100">
           <tr>
-            <th className="border border-gray-300 p-2">Línea ID</th>
-            <th className="border border-gray-300 p-2">Total Línea</th>
-            <th className="border border-gray-300 p-2">Detalle</th>
+            <th className="border p-2">Línea ID</th>
+            <th className="border p-2">Total Línea</th>
+            <th className="border p-2">Detalle</th>
           </tr>
         </thead>
-        <tbody>
-          {descargo.lineas_descargo.map((linea) => (
-            <LineaDescargo
-              key={linea.linea_id}
-              linea={linea}
-              expandida={lineaExpandida === linea.linea_id}
-              onToggle={() => toggleLinea(linea.linea_id)}
-            />
-          ))}
-          <tr>
-            <td className="border p-2 font-bold text-right" colSpan={2}>
-              Total Descargo
-            </td>
-            <td className="border p-2 font-bold text-right">
-              ${descargo.precio_total_descargo.toFixed(2)}
-            </td>
-          </tr>
-        </tbody>
+          <tbody>
+            {(
+              desc.lineas_descargo   // si existe
+              ?? desc.lineas        // si backend lo llama así
+              ?? []
+            ).map((linea) => (
+              <React.Fragment key={linea.linea_id}>
+                <tr
+                  className="cursor-pointer hover:bg-gray-200"
+                  onClick={() => toggleLinea(linea.linea_id)}
+                >
+                  <td className="border p-2 text-center">
+                    {linea.linea_id}
+                  </td>
+                  <td className="border p-2 text-right">
+                    ${linea.precio_total_linea.toFixed(2)}
+                  </td>
+                  <td className="border p-2 text-center">
+                    {lineaExpandida === linea.linea_id
+                      ? "▼ Ocultar"
+                      : "▶ Ver Detalle"}
+                  </td>
+                </tr>
+                {lineaExpandida === linea.linea_id && (
+                  <tr>
+                    <td colSpan={3} className="border p-4 bg-gray-50">
+                      {linea.productos?.length > 0 && (
+                        <>
+                          <h3 className="font-semibold mb-2">Productos</h3>
+                          <TablaProductos productos={linea.productos} />
+                        </>
+                      )}
+                      {linea.servicios?.length > 0 && (
+                        <>
+                          <h3 className="font-semibold mt-4 mb-2">
+                            Servicios
+                          </h3>
+                          <TablaServicios servicios={linea.servicios} />
+                        </>
+                      )}
+                    </td>
+                  </tr>
+                )}
+              </React.Fragment>
+            ))}
+            <tr>
+              <td
+                className="border p-2 font-bold text-right"
+                colSpan={2}
+              >
+                Total Descargo
+              </td>
+              <td className="border p-2 font-bold text-right">
+                ${desc.precio_total_descargo?.toFixed(2) ?? "0.00"}
+              </td>
+            </tr>
+          </tbody>
+
       </table>
 
-      <div className="flex flex-wrap justify-center gap-4 mt-4">
+      <div className="flex gap-4">
         <button
-          onClick={() => router.push("/pacientes")}
-          className="bg-gray-400 text-white px-6 py-2 rounded hover:bg-gray-500"
-        >
-          ← Volver
-        </button>
-        <button
-          onClick={handleAgregarDescargo}
+          onClick={() => setModalVisible(true)}
           className="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700"
         >
-          Agregar Descargo
+          Agregar Línea
         </button>
         <button
-          onClick={handleGenerarFactura}
+          onClick={facturar}
           className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
         >
           Generar Factura
         </button>
       </div>
+
       {modalVisible && (
         <ModalAgregarDescargo
           onGuardarLinea={guardarLinea}

@@ -60,6 +60,9 @@ export default function ListaPacientes() {
         <h2 className="text-2xl font-bold text-center mb-4 text-gray-900">
           Lista de Pacientes
         </h2>
+        <h2 className="text-2xl font-bold text-center mb-4 text-gray-900">
+          Lista de Pacientes
+        </h2>
 
         <div className="flex justify-center mb-6">
           <Link

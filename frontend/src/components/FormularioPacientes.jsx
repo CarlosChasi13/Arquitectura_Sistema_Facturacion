@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 
 export default function FormularioPaciente() {
   const router = useRouter();
-
   const [formData, setFormData] = useState({
     nombres: "",
     apellidos: "",
@@ -23,6 +22,7 @@ export default function FormularioPaciente() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleSubmit = async (e) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -50,7 +50,7 @@ export default function FormularioPaciente() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center bg-[#f2f4f7] p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#f2f4f7] p-4">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-xl bg-white p-8 rounded-lg shadow-md space-y-5 text-gray-800"
