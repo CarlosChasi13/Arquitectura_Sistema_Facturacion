@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ServicioServiceImpl implements ServicioService {
+
     private final ServicioRepository repo;
 
     @Override
@@ -40,13 +41,21 @@ public class ServicioServiceImpl implements ServicioService {
     @Override
     @Transactional
     public ServicioDTO crearServicio(ServicioDTO dto) {
-        // Creamos la subclase correcta según el discriminator en DTO
+        // 1) Creamos la subclase adecuada
         Servicio s = crearTipoServicio(dto.getTipo());
+
+        // 2) Asignamos campos comunes
         s.setCodigo(dto.getCodigo());
         s.setDescripcion(dto.getDescripcion());
         s.setPrecioBase(dto.getPrecioBase());
-        // Ajustamos el estado usando el enum EstadoDocumento
-        s.setEstado(dto.getEstado());
+        s.setEstado(EstadoDocumento.valueOf(dto.getEstado()));
+
+        // 3) Si es atención médica, asignamos doctor encargado
+        if (s instanceof AtencionMedica am) {
+            am.setDoctorEncargado(dto.getDoctorEncargado());
+        }
+
+        // 4) Guardamos y devolvemos DTO
         Servicio saved = repo.save(s);
         return ServicioDTO.fromEntity(saved);
     }
@@ -56,10 +65,18 @@ public class ServicioServiceImpl implements ServicioService {
     public ServicioDTO actualizarServicio(Long id, ServicioDTO dto) {
         Servicio s = repo.findById(id)
                          .orElseThrow(() -> new NoSuchElementException("Servicio no encontrado"));
+
+        // Campos comunes
         s.setCodigo(dto.getCodigo());
         s.setDescripcion(dto.getDescripcion());
         s.setPrecioBase(dto.getPrecioBase());
-        s.setEstado(dto.getEstado());
+        s.setEstado(EstadoDocumento.valueOf(dto.getEstado()));
+
+        // Doctor encargado si aplica
+        if (s instanceof AtencionMedica am) {
+            am.setDoctorEncargado(dto.getDoctorEncargado());
+        }
+
         Servicio saved = repo.save(s);
         return ServicioDTO.fromEntity(saved);
     }
@@ -71,7 +88,8 @@ public class ServicioServiceImpl implements ServicioService {
     }
 
     /**
-     * Factory method que devuelve la subclase adecuada de Servicio.
+     * Factory method que devuelve la subclase adecuada de Servicio
+     * según el discriminator recibido.
      */
     private Servicio crearTipoServicio(String tipo) {
         return switch (tipo) {

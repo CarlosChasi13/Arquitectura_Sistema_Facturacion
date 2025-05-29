@@ -1,20 +1,18 @@
 // src/main/java/com/backend/hospital/service/PacienteServiceImpl.java
 package com.backend.hospital.service;
 
-import org.springframework.stereotype.Service;
-import org.springframework.beans.factory.annotation.Autowired;
-import com.backend.hospital.repository.PacienteRepository;
 import com.backend.hospital.dto.PacienteDTO;
-import com.backend.hospital.model.Paciente;
-
+import com.backend.hospital.model.*;
+import com.backend.hospital.repository.PacienteRepository;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class PacienteServiceImpl implements PacienteService {
   private final PacienteRepository repo;
 
-  @Autowired
   public PacienteServiceImpl(PacienteRepository repo) {
     this.repo = repo;
   }
@@ -34,12 +32,19 @@ public class PacienteServiceImpl implements PacienteService {
   }
 
   @Override
+  @Transactional
   public PacienteDTO crearPaciente(PacienteDTO dto) {
+    // Convertimos DTO → entidad sin estado
     Paciente p = dto.toEntity();
-    return PacienteDTO.fromEntity(repo.save(p));
+    // Asignamos el estado por defecto
+    p.setEstado(PacienteStatus.INDETERMINADO);
+    // guardamos y devolvemos DTO
+    Paciente saved = repo.save(p);
+    return PacienteDTO.fromEntity(saved);
   }
 
   @Override
+  @Transactional
   public PacienteDTO actualizarPaciente(Long id, PacienteDTO dto) {
     Paciente p = repo.findById(id)
       .orElseThrow(() -> new RuntimeException("Paciente no encontrado"));
@@ -48,10 +53,16 @@ public class PacienteServiceImpl implements PacienteService {
     p.setCedula(dto.getCedula());
     p.setFechaNac(dto.getFechaNac());
     p.setTelefono(dto.getTelefono());
-    return PacienteDTO.fromEntity(repo.save(p));
+    // opcional: permitir cambiar manualmente el estado vía DTO
+    if (dto.getEstado() != null) {
+      p.setEstado(dto.getEstado());
+    }
+    Paciente saved = repo.save(p);
+    return PacienteDTO.fromEntity(saved);
   }
 
   @Override
+  @Transactional
   public void borrarPaciente(Long id) {
     repo.deleteById(id);
   }
