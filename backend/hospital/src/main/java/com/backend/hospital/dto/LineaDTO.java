@@ -1,10 +1,18 @@
 // src/main/java/com/backend/hospital/dto/LineaDTO.java
 package com.backend.hospital.dto;
 
-import com.backend.hospital.model.*;
-import lombok.*;
+import com.backend.hospital.model.LineaDeTransaccion;
+import com.backend.hospital.model.LineaProducto;
+import com.backend.hospital.model.LineaServicio;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Data @NoArgsConstructor @AllArgsConstructor @Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class LineaDTO {
     private Long id;
     private Long descargoId;
@@ -21,13 +29,23 @@ public class LineaDTO {
             .precioUnitario(ln.getPrecioUnitario())
             .build();
 
-        if (ln.getDescargo() != null) dto.setDescargoId(ln.getDescargo().getId());
-        if (ln.getFactura()  != null) dto.setFacturaId(ln.getFactura().getId());
-        if (ln instanceof LineaProducto) {
-            dto.setProductoId(((LineaProducto) ln).getProducto().getId());
-        } else if (ln instanceof LineaServicio) {
-            dto.setServicioId(((LineaServicio) ln).getServicio().getId());
+        if (ln.getDescargo() != null) {
+            dto.setDescargoId(ln.getDescargo().getId());
         }
+        if (ln.getFactura() != null) {
+            dto.setFacturaId(ln.getFactura().getId());
+        }
+
+        if (ln instanceof LineaProducto lp) {
+            if (lp.getProducto() != null) {
+                dto.setProductoId(lp.getProducto().getId());
+            }
+        } else if (ln instanceof LineaServicio ls) {
+            if (ls.getServicio() != null) {
+                dto.setServicioId(ls.getServicio().getId());
+            }
+        }
+
         return dto;
     }
 
