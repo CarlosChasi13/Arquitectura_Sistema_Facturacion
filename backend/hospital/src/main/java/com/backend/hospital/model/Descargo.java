@@ -1,23 +1,26 @@
 package com.backend.hospital.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import lombok.*;
 
 @Entity
 @Table(name = "descargo")
-@Data @EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor @AllArgsConstructor @Builder
+@Data
+@EqualsAndHashCode(callSuper = true)
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Descargo extends DocumentoTransaccion {
 
     @OneToMany(
-      mappedBy = "descargo",
-      cascade = CascadeType.ALL,
-      orphanRemoval = true
+            mappedBy = "descargo",
+            cascade = CascadeType.ALL,
+            orphanRemoval = true
     )
-    private List<LineaDeTransaccion> lineas;
+    private List<LineaDeTransaccion> lineas = new ArrayList<>();
 
     @Override
     public Descargo clone() {
