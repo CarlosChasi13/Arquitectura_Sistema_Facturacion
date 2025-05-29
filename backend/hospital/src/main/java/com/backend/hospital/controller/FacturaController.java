@@ -15,13 +15,25 @@ public class FacturaController {
     private final FacturaService facturaService;
 
     @PostMapping("/descargos/{descargoId}/facturar")
-    public FacturaDTO facturar(@PathVariable Long pacienteId,
-                               @PathVariable Long descargoId) {
-        return facturaService.facturarDescargo(descargoId);
+    public ResponseEntity<FacturaDTO> facturar(
+        @PathVariable Long descargoId
+    ) {
+        FacturaDTO dto = facturaService.facturarDescargo(descargoId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @GetMapping("/factura")
-    public FacturaDTO obtenerFactura(@PathVariable Long pacienteId) {
-        return facturaService.getFacturaPorPaciente(pacienteId);
+    public ResponseEntity<FacturaDTO> obtenerFactura(
+        @PathVariable Long pacienteId
+    ) {
+        try {
+            FacturaDTO dto = facturaService.getFacturaPorPaciente(pacienteId);
+            return ResponseEntity.ok(dto);
+        } catch (RuntimeException ex) {
+            // si no hay factura, devolvemos 404 en lugar de 500
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                                 .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+                                 .body(null);
+        }
     }
 }
