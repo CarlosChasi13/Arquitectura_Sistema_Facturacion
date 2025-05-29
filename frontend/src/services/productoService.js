@@ -1,5 +1,5 @@
 import { getAPI } from "./service"; 
-const BASE_URL = process.env.BACKEND_URL || 'http://127.0.0.1:5000';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL + '/api';
 
 export async function obtenerProductos() {
   const url = `${BASE_URL}/productos`;

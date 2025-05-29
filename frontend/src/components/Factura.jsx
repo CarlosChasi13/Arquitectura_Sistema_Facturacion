@@ -1,47 +1,59 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
-export default function VerFactura() {
-  const { id } = useParams();  // paciente_id
+export default function VerFactura({ id }) {
   const router = useRouter();
-  const [factura, setFactura] = useState(null);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    fetch(`/api/pacientes/${id}/factura`)
-      .then((r) => {
-        if (!r.ok) throw new Error(r.statusText);
-        return r.json();
-      })
-      .then(setFactura)
-      .catch((e) => setError(e.message));
-  }, [id]);
-
-  if (error) return <div className="p-4 text-red-600">Error: {error}</div>;
-  if (!factura) return <div className="p-4">Cargando factura…</div>;
+  const factura = {
+    nro_sri: "001-002-000000123",
+    fecha: "2025-05-22",
+    cliente: "Juan Pérez",
+    items: [
+      { id: 1, descripcion: "Atención Médica", cantidad: 1, precio: 100 },
+      { id: 2, descripcion: "Medicamento ABC", cantidad: 2, precio: 20 },
+    ],
+    total: 140,
+  };
 
   return (
-    <div className="…">
-      <button onClick={() => router.back()} className="…">← Volver</button>
-      <h2>Factura del Paciente {id}</h2>
-      <p><strong>Nro SRI:</strong> {factura.nro_sri}</p>
-      <p><strong>Fecha:</strong> {factura.fecha}</p>
-      <p><strong>Cliente:</strong> {factura.cliente}</p>
-      <table className="…">
-        <thead>…</thead>
-        <tbody>
-          {factura.items.map((item) => (
-            <tr key={item.id}>
-              <td>{item.descripcion}</td>
-              <td>{item.cantidad}</td>
-              <td>${item.precio.toFixed(2)}</td>
-              <td>${(item.cantidad * item.precio).toFixed(2)}</td>
+    <div className="min-h-screen w-full bg-white flex flex-col items-center p-6">
+      <button
+        onClick={() => router.push("/pacientes")}
+        className="self-start mb-4 px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition"
+      >
+        ← Volver
+      </button>
+
+      <div className="max-w-4xl w-full rounded shadow text-gray-900">
+        <h2 className="text-2xl font-bold mb-4">Factura del Paciente {id}</h2>
+
+        <p><strong>Nro SRI:</strong> {factura.nro_sri}</p>
+        <p><strong>Fecha:</strong> {factura.fecha}</p>
+        <p><strong>Cliente:</strong> {factura.cliente}</p>
+
+        <table className="w-full border text-left mt-4">
+          <thead className="bg-gray-100">
+            <tr>
+              <th className="border p-2">Descripción</th>
+              <th className="border p-2">Cantidad</th>
+              <th className="border p-2">Precio Unitario</th>
+              <th className="border p-2">Subtotal</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <h3>Total: ${factura.total.toFixed(2)}</h3>
+          </thead>
+          <tbody>
+            {factura.items.map(item => (
+              <tr key={item.id} className="hover:bg-gray-50">
+                <td className="border p-2">{item.descripcion}</td>
+                <td className="border p-2">{item.cantidad}</td>
+                <td className="border p-2">${item.precio.toFixed(2)}</td>
+                <td className="border p-2">${(item.cantidad * item.precio).toFixed(2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <h3 className="text-right text-xl font-bold mt-4">Total: ${factura.total.toFixed(2)}</h3>
+      </div>
     </div>
   );
 }

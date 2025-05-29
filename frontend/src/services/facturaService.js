@@ -1,5 +1,5 @@
 import { getAPI, postAPI } from "./service"; 
-const BASE_URL = process.env.BACKEND_URL || 'http://127.0.0.1:5000';
+const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL + '/api';
 
 // Obtener la última factura de un paciente
 export async function obtenerUltimaFactura(pacienteId) {
