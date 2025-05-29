@@ -6,8 +6,15 @@ import com.backend.hospital.dto.LineaDTO;
 import java.util.List;
 
 public interface DescargoService {
+
     List<DescargoDTO> listarDescargosPorPaciente(Long pacienteId);
+
     DescargoDTO crearDescargo(Long pacienteId, DescargoDTO dto);
+
     List<LineaDTO> listarLineas(Long descargoId);
+
     LineaDTO agregarLinea(Long descargoId, LineaDTO linea);
+
+    DescargoDTO descargarDescargo(Long pacienteId, Long descargoId);
+
 }

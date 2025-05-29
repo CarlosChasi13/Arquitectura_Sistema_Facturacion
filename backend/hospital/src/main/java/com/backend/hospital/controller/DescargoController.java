@@ -29,4 +29,12 @@ public class DescargoController {
                 .status(HttpStatus.CREATED)
                 .body(creado);
     }
+
+    @PostMapping("/{descargoId}/descargar")
+    public ResponseEntity<DescargoDTO> descargar(
+            @PathVariable Long pacienteId,
+            @PathVariable Long descargoId) {
+        DescargoDTO updated = descargoService.descargarDescargo(pacienteId, descargoId);
+        return ResponseEntity.ok(updated);
+    }
 }
