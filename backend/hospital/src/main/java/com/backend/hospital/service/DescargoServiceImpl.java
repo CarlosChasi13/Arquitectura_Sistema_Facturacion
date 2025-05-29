@@ -54,26 +54,32 @@ public class DescargoServiceImpl implements DescargoService {
 
     @Override
     @Transactional
-    public LineaDTO agregarLinea(Long descargoId, LineaDTO lineaDTO) {
-        Descargo descargo = descargoRepo.findById(descargoId)
+    public LineaDTO agregarLinea(Long descargoId, LineaDTO dto) {
+        Descargo d = descargoRepo.findById(descargoId)
                 .orElseThrow(() -> new RuntimeException("Descargo no encontrado"));
 
-        LineaDeTransaccion ln = lineaDTO.toEntity();
-        ln.setDescargo(descargo);
+        // 1) convertir DTO ↔ entidad
+        LineaDeTransaccion ln = dto.toEntity();
+        ln.setDescargo(d);
 
-        if (lineaDTO.getProductoId() != null) {
-            Producto prod = productoRepo.findById(lineaDTO.getProductoId())
+        // 2) asociar producto o servicio
+        if (dto.getProductoId() != null) {
+            Producto p = productoRepo.findById(dto.getProductoId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
-            ((LineaProducto) ln).setProducto(prod);
-        }
-        if (lineaDTO.getServicioId() != null) {
-            Servicio serv = servicioRepo.findById(lineaDTO.getServicioId())
+            ((LineaProducto) ln).setProducto(p);
+
+        } else if (dto.getServicioId() != null) {
+            Servicio s = servicioRepo.findById(dto.getServicioId())
                     .orElseThrow(() -> new RuntimeException("Servicio no encontrado"));
-            ((LineaServicio) ln).setServicio(serv);
+            ((LineaServicio) ln).setServicio(s);
+
+        } else {
+            throw new IllegalArgumentException("Debe indicar productoId o servicioId");
         }
 
-        ln = lineaRepo.save(ln);
-        return LineaDTO.fromEntity(ln);
+        // 3) guardar y devolver DTO
+        LineaDeTransaccion saved = lineaRepo.save(ln);
+        return LineaDTO.fromEntity(saved);
     }
 
     @Override
