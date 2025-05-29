@@ -39,25 +39,13 @@ public class Paciente {
     @PostLoad @PostPersist @PostUpdate
     private void initEstadoBehavior() {
         switch (this.estado) {
-            case BUENO:
-                this.estadoBehavior = new EstadoBueno();
-                break;
-            case REGULAR:
-                this.estadoBehavior = new EstadoRegular();
-                break;
-            case SERIO:
-                this.estadoBehavior = new EstadoSerio();
-                break;
-            case CRITICO:
-                this.estadoBehavior = new EstadoCritico();
-                break;
-            case MUERTO:
-                this.estadoBehavior = new EstadoMuerto();
-                break;
+            case BUENO:          this.estadoBehavior = new EstadoBueno(); break;
+            case REGULAR:        this.estadoBehavior = new EstadoRegular(); break;
+            case SERIO:          this.estadoBehavior = new EstadoSerio(); break;
+            case CRITICO:        this.estadoBehavior = new EstadoCritico(); break;
+            case MUERTO:         this.estadoBehavior = new EstadoMuerto(); break;
             case INDETERMINADO:
-            default:
-                this.estadoBehavior = new EstadoIndeterminado();
-                break;
+            default:             this.estadoBehavior = new EstadoIndeterminado(); break;
         }
     }
 

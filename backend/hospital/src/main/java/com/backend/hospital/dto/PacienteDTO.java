@@ -1,10 +1,8 @@
 // src/main/java/com/backend/hospital/dto/PacienteDTO.java
 package com.backend.hospital.dto;
 
-import com.backend.hospital.model.Paciente;
-import com.backend.hospital.model.PacienteStatus;
+import com.backend.hospital.model.*;
 import lombok.*;
-
 import java.time.LocalDate;
 
 @Data @NoArgsConstructor @AllArgsConstructor @Builder
@@ -30,6 +28,7 @@ public class PacienteDTO {
     }
 
     public Paciente toEntity() {
+        // NOTA: el servicio le pondrá el estado por defecto
         return Paciente.builder()
             .id(this.id)
             .nombres(this.nombres)
@@ -37,7 +36,6 @@ public class PacienteDTO {
             .cedula(this.cedula)
             .fechaNac(this.fechaNac)
             .telefono(this.telefono)
-            .estado(this.estado)
             .build();
     }
 }
