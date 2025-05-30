@@ -7,6 +7,7 @@ export async function obtenerDescargosPorPaciente(pacienteId) {
 
   try {
     const res = await getAPI(url);
+    console.log(res);
     return {
       success: res.success,
       message: res.message || "Descargos obtenidos correctamente",
@@ -23,7 +24,7 @@ export async function obtenerDescargosPorPaciente(pacienteId) {
 }
 
 // Crear descargo para paciente
-export async function crearDescargoParaPaciente(pacienteId, datosDescargo) {
+export async function crearDescargo(pacienteId, datosDescargo) {
   const url = `${BASE_URL}/pacientes/${pacienteId}/descargos`;
 
   try {
@@ -89,7 +90,7 @@ export async function obtenerLineasDeDescargo(descargoId) {
 // Agregar nueva línea (producto o servicio) a un descargo
 export async function agregarLineaADescargo(descargoId, datosLinea) {
   const url = `${BASE_URL}/descargos/${descargoId}/lineas`;
-
+  console.log("Datos linea",datosLinea);
   try {
     const res = await postAPI(url, datosLinea);
     return {
@@ -102,6 +103,34 @@ export async function agregarLineaADescargo(descargoId, datosLinea) {
     return {
       success: false,
       message: "Error al agregar línea al descargo",
+      data: null,
+    };
+  }
+}
+
+export async function descargarLineasDescargo(pacienteId, descargoId) {
+  const url = `/api/pacientes/${pacienteId}/descargos/${descargoId}/descargar`;
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    const data = await res.json();
+
+    return {
+      success: res.ok,
+      message: data.message || "Líneas descargadas correctamente",
+      data: data,
+    };
+  } catch (error) {
+    console.error("Error al descargar líneas:", error);
+    return {
+      success: false,
+      message: "Error al descargar las líneas del descargo",
       data: null,
     };
   }

@@ -42,3 +42,4 @@ export async function facturarDescargo(pacienteId, descargoId) {
     };
   }
 }
+

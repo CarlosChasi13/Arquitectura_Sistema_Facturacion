@@ -1,52 +1,86 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useParams } from "next/navigation";
 import { obtenerProductos, obtenerServicios } from "@/services/productoService";
+import {
+  crearDescargo,
+  agregarLineaADescargo,
+} from "@/services/descargoService";
 import { toast } from "react-toastify";
 
-export default function ModalAgregarDescargo({ onGuardarLinea, onCancelar }) {
+export default function ModalAgregarDescargo({
+  pacienteId,
+  descargoPendiente,
+  onGuardarLinea,
+  onCancelar,
+}) {
   const [form, setForm] = useState({
     tipo: "Producto",
+    producto_id: null,
+    servicio_id: null,
     descripcion: "",
-    precio: "",
+    precio: 0.0,
     cantidad: 1,
     estado: "Descargado",
   });
 
+  const { id } = useParams();
   const [opciones, setOpciones] = useState([]);
   const [productosAgregados, setProductosAgregados] = useState([]);
   const [serviciosAgregados, setServiciosAgregados] = useState([]);
   const [idSeleccionado, setIdSeleccionado] = useState("");
+  const [idEditando, setIdEditando] = useState(null);
 
-  // Cargar productos o servicios al cambiar el tipo
-useEffect(() => {
-  async function cargarOpciones() {
-    const res =
-      form.tipo === "Producto"
-        ? await obtenerProductos()
-        : await obtenerServicios();
+  useEffect(() => {
+    async function cargarOpciones() {
+      const res =
+        form.tipo === "Producto"
+          ? await obtenerProductos()
+          : await obtenerServicios();
 
-    if (res.success) {
-      setOpciones(res.data);
-      console.log("Respuesta recibida", res);
-    } else {
-      toast.error(res.message || "Error al cargar opciones");
-      setOpciones([]);
+      if (res.success && res.data.length > 0) {
+        const lista = res.data;
+        const primero = lista[0];
+
+        setOpciones(lista);
+        setIdSeleccionado(primero.id.toString());
+
+        const descripcionDefinida =
+          form.tipo === "Producto"
+            ? primero.nombre ||
+              primero.descripcion ||
+              "Producto sin descripción"
+            : primero.descripcion ||
+              primero.nombre ||
+              primero.tipo_servicio ||
+              "Servicio sin descripción";
+
+        setForm((prev) => ({
+          ...prev,
+          descripcion: descripcionDefinida,
+          precio:
+            form.tipo === "Producto"
+              ? primero.precioUnitario ?? 0.0
+              : primero.precioBase ?? 0.0,
+          producto_id: form.tipo === "Producto" ? primero.id : null,
+          servicio_id: form.tipo === "Servicio" ? primero.id : null,
+          cantidad: 1,
+        }));
+      } else {
+        setOpciones([]);
+        setIdSeleccionado("");
+        setForm((prev) => ({
+          ...prev,
+          descripcion: "",
+          precio: 0.0,
+          cantidad: 1,
+        }));
+      }
     }
 
-    // Reiniciar selección y campos al cambiar tipo
-    setIdSeleccionado("");
-    setForm((prev) => ({
-      ...prev,
-      descripcion: "",
-      precio: "",
-      cantidad: form.tipo === "Producto" ? 1 : 1, 
-    }));
-  }
-
-  cargarOpciones();
-}, [form.tipo]);
-
+    cargarOpciones();
+  }, [form.tipo]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -54,30 +88,51 @@ useEffect(() => {
   };
 
   const handleSeleccion = (e) => {
-    const idSeleccionado = parseInt(e.target.value);
-    const seleccionado = opciones.find((item) => item.id === idSeleccionado);
+    const id = e.target.value;
+    setIdSeleccionado(id);
 
+    const seleccionado = opciones.find((item) => item.id === parseInt(id));
     if (seleccionado) {
+      const descripcionDefinida =
+        form.tipo === "Producto"
+          ? seleccionado.nombre ||
+            seleccionado.descripcion ||
+            "Producto sin descripción"
+          : seleccionado.descripcion ||
+            seleccionado.nombre ||
+            seleccionado.tipo_servicio ||
+            "Servicio sin descripción";
+
       setForm((prev) => ({
         ...prev,
-        descripcion: seleccionado.nombre,
+        descripcion: descripcionDefinida,
         precio:
           form.tipo === "Producto"
-            ? seleccionado.precio_unitario
-            : seleccionado.precio_base,
+            ? seleccionado.precioUnitario ?? 0.0
+            : seleccionado.precioBase ?? 0.0,
+        producto_id: prev.tipo === "Producto" ? seleccionado.id : null,
+        servicio_id: prev.tipo === "Servicio" ? seleccionado.id : null,
       }));
     }
   };
 
   const agregarItem = () => {
-    if (!form.descripcion || !form.precio) {
-      alert("Por favor completa los campos.");
+    console.log(form);
+    if (
+      (form.tipo === "Producto" && !form.producto_id) ||
+      (form.tipo === "Servicio" && !form.servicio_id) ||
+      !form.precio ||
+      form.precio === "0.00"
+    ) {
+      toast.error("Por favor completa los campos.");
       return;
     }
 
     const nuevoItem = {
       id: Date.now(),
       tipo: form.tipo,
+      producto_id: form.producto_id,
+      servicio_id: form.servicio_id,
       descripcion: form.descripcion,
       precio_unitario: parseFloat(form.precio),
       cantidad: form.tipo === "Producto" ? parseInt(form.cantidad) || 1 : 1,
@@ -94,10 +149,11 @@ useEffect(() => {
       setServiciosAgregados((prev) => [...prev, nuevoItem]);
     }
 
+    setIdSeleccionado("");
     setForm({
       tipo: "Producto",
       descripcion: "",
-      precio: "",
+      precio: 0.0,
       cantidad: 1,
       estado: "Descargado",
     });
@@ -111,22 +167,143 @@ useEffect(() => {
     }
   };
 
-  const guardarLineaDescargo = () => {
-    if (productosAgregados.length === 0 && serviciosAgregados.length === 0) {
-      alert("Debes agregar al menos un producto o servicio.");
+  const editarItem = (item) => {
+    setIdEditando(item.id);
+    setIdSeleccionado(""); // Lo puedes actualizar con el id del producto/servicio si quieres
+    setForm({
+      tipo: item.tipo,
+      descripcion: item.descripcion,
+      precio: item.precio_unitario,
+      cantidad: item.cantidad,
+      estado: item.estado,
+    });
+
+    const opcionEncontrada = opciones.find(
+      (op) =>
+        op.nombre === item.descripcion || op.descripcion === item.descripcion
+    );
+    if (opcionEncontrada) {
+      setIdSeleccionado(opcionEncontrada.id.toString());
+    }
+  };
+  const guardarCambios = () => {
+    if (!form.descripcion || !form.precio || form.precio === "0.00") {
+      toast.error("Por favor completa los campos.");
       return;
     }
 
-    const total =
-      productosAgregados.reduce((sum, p) => sum + p.precio_total, 0) +
-      serviciosAgregados.reduce((sum, s) => sum + s.precio_total, 0);
+    if (!idEditando) return;
 
-    onGuardarLinea({
-      linea_id: Date.now(),
-      productos: productosAgregados,
-      servicios: serviciosAgregados,
-      precio_total_linea: total,
+    const itemActualizado = {
+      id: idEditando,
+      tipo: form.tipo,
+      descripcion: form.descripcion,
+      precio_unitario: parseFloat(form.precio),
+      cantidad: form.tipo === "Producto" ? parseInt(form.cantidad) || 1 : 1,
+      precio_total:
+        form.tipo === "Producto"
+          ? parseFloat(form.precio) * (parseInt(form.cantidad) || 1)
+          : parseFloat(form.precio),
+      estado: "Descargado",
+    };
+
+    if (form.tipo === "Producto") {
+      setProductosAgregados((prev) =>
+        prev.map((p) => (p.id === idEditando ? itemActualizado : p))
+      );
+    } else {
+      setServiciosAgregados((prev) =>
+        prev.map((s) => (s.id === idEditando ? itemActualizado : s))
+      );
+    }
+
+    // Limpiar estado de edición y formulario
+    setIdEditando(null);
+    setIdSeleccionado("");
+    setForm({
+      tipo: "Producto",
+      descripcion: "",
+      precio: 0.0,
+      cantidad: 1,
+      estado: "Descargado",
     });
+  };
+
+  const [loading, setLoading] = useState(false);
+
+  const guardarLineaDescargo = async () => {
+    if (productosAgregados.length === 0 && serviciosAgregados.length === 0) {
+      toast.error("Debes agregar al menos un producto o servicio.");
+      return;
+    }
+
+    setLoading(true);
+
+    let descargoId = descargoPendiente?.descargo_id || descargoPendiente?.id; // Ajusta según estructura
+
+    if (!descargoId) {
+      // Crear nuevo descargo con estado PENDIENTE
+      const datosDescargo = {
+        fecha: new Date().toISOString(),
+        observacion: "Descargo generado desde UI",
+        estado: "PENDIENTE",
+        // otros campos si necesitas
+      };
+
+      const respuesta = await crearDescargo(id, datosDescargo);
+
+      if (!respuesta.success) {
+        toast.error(respuesta.message || "Error al crear el descargo");
+        setLoading(false);
+        return;
+      }
+      descargoId = respuesta.data.id;
+    }
+
+    try {
+      await Promise.all(
+        [...productosAgregados, ...serviciosAgregados].map((linea) => {
+          const datosLinea = {
+            tipo: linea.tipo,
+            descripcion: linea.descripcion,
+            precioUnitario: linea.precio_unitario,
+            cantidad: linea.cantidad,
+            precio_total: linea.precio_total,
+            estado: linea.estado,
+            productoId: linea.tipo === "Producto" ? linea.producto_id : null,
+            servicioId: linea.tipo === "Servicio" ? linea.servicio_id : null,
+          };
+          return agregarLineaADescargo(descargoId, datosLinea);
+        })
+      );
+
+      toast.success("Descargo y líneas guardadas correctamente");
+
+      onGuardarLinea({
+        descargo_id: descargoId,
+        precio_total_linea: productosAgregados
+          .concat(serviciosAgregados)
+          .reduce((acc, cur) => acc + cur.precio_total, 0),
+        productos: productosAgregados,
+        servicios: serviciosAgregados,
+      });
+
+      setProductosAgregados([]);
+      setServiciosAgregados([]);
+      setForm({
+        tipo: "Producto",
+        descripcion: "",
+        precio: 0.0,
+        cantidad: 1,
+        estado: "Descargado",
+      });
+      setIdSeleccionado("");
+      setIdEditando(null);
+    } catch (error) {
+      toast.error("Error al agregar las líneas del descargo: " + error.message);
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -148,30 +325,13 @@ useEffect(() => {
           <select
             name="descripcion"
             value={idSeleccionado}
-            onChange={(e) => {
-              const id = e.target.value;
-              setIdSeleccionado(id); // actualiza el valor del select
-              const seleccionado = opciones.find(
-                (item) => item.id === parseInt(id)
-              );
-
-              if (seleccionado) {
-                setForm((prev) => ({
-                  ...prev,
-                  descripcion: seleccionado.nombre || seleccionado.descripcion,
-                  precio:
-                    form.tipo === "Producto"
-                      ? seleccionado.precio_unitario
-                      : seleccionado.precio_base,
-                }));
-              }
-            }}
+            onChange={handleSeleccion}
             className="border px-4 py-2 rounded w-1/2"
           >
             <option value="">Seleccionar {form.tipo}</option>
             {opciones.map((item) => (
               <option key={item.id} value={item.id}>
-                {item.nombre || item.descripcion}
+                {item.nombre || item.tipo || item.descripcion}
               </option>
             ))}
           </select>
@@ -193,7 +353,7 @@ useEffect(() => {
           type="number"
           name="precio"
           placeholder="Precio"
-          value={form.precio}
+          value={form.precio ?? 0.0}
           onChange={handleChange}
           className="w-full border px-4 py-2 rounded"
           min="0"
@@ -202,10 +362,10 @@ useEffect(() => {
 
         <button
           type="button"
-          onClick={agregarItem}
+          onClick={idEditando ? guardarCambios : agregarItem}
           className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700"
         >
-          Agregar a la Línea
+          {idEditando ? "Guardar Cambios" : "Agregar a la Línea"}
         </button>
 
         <div>
@@ -219,12 +379,20 @@ useEffect(() => {
                 {p.descripcion} x{p.cantidad}
               </span>
               <span>${p.precio_total.toFixed(2)}</span>
-              <button
-                onClick={() => eliminarItem(p.id, "Producto")}
-                className="text-red-600 hover:underline"
-              >
-                Eliminar
-              </button>
+              <div>
+                <button
+                  onClick={() => editarItem(p)}
+                  className="text-blue-600 hover:underline mr-2"
+                >
+                  Editar
+                </button>
+                <button
+                  onClick={() => eliminarItem(p.id, "Producto")}
+                  className="text-red-600 hover:underline"
+                >
+                  Eliminar
+                </button>
+              </div>
             </div>
           ))}
         </div>

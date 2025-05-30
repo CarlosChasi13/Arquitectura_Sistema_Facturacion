@@ -1,19 +1,37 @@
 "use client";
+
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { obtenerUltimaFactura } from "@/services/facturaService";
 
 export default function VerFactura({ id }) {
   const router = useRouter();
+  const [factura, setFactura] = useState(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState(null);
 
-  const factura = {
-    nro_sri: "001-002-000000123",
-    fecha: "2025-05-22",
-    cliente: "Juan Pérez",
-    items: [
-      { id: 1, descripcion: "Atención Médica", cantidad: 1, precio: 100 },
-      { id: 2, descripcion: "Medicamento ABC", cantidad: 2, precio: 20 },
-    ],
-    total: 140,
-  };
+  useEffect(() => {
+    async function fetchFactura() {
+      const res = await obtenerUltimaFactura(id);
+      if (res.success && res.data) {
+        setFactura(res.data);
+      } else {
+        setError(res.message || "No se pudo cargar la factura.");
+      }
+      setCargando(false);
+    }
+
+    fetchFactura();
+  }, [id]);
+
+  if (cargando) return <div className="p-6">Cargando factura...</div>;
+  if (error) return <div className="p-6 text-red-600">{error}</div>;
+  if (!factura) return null;
+
+  const total = factura.items?.reduce(
+    (acc, item) => acc + item.cantidad * item.precio,
+    0
+  );
 
   return (
     <div className="min-h-screen w-full bg-white flex flex-col items-center p-6">
@@ -41,7 +59,7 @@ export default function VerFactura({ id }) {
             </tr>
           </thead>
           <tbody>
-            {factura.items.map(item => (
+            {factura.items?.map(item => (
               <tr key={item.id} className="hover:bg-gray-50">
                 <td className="border p-2">{item.descripcion}</td>
                 <td className="border p-2">{item.cantidad}</td>
@@ -52,7 +70,9 @@ export default function VerFactura({ id }) {
           </tbody>
         </table>
 
-        <h3 className="text-right text-xl font-bold mt-4">Total: ${factura.total.toFixed(2)}</h3>
+        <h3 className="text-right text-xl font-bold mt-4">
+          Total: ${total.toFixed(2)}
+        </h3>
       </div>
     </div>
   );
